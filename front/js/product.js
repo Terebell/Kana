@@ -53,3 +53,68 @@ function displayProduct(card) {
     select.innerHTML = options;
   }
 }
+
+// ---------- Envoi au panier ---------- //
+function validPanier() {
+  if (
+    confirm(
+      `Article(s) ajouté(s) au panier : ${quantity.value}. Validez pour retourner à la sélection d\'articles.`
+    )
+  ) {
+    location.href = "index.html";
+  }
+}
+
+function bouton() {
+  // Récupération des informations
+  let panierStorage = localStorage.getItem("panier");
+  let colors = document.querySelector("#colors");
+  let quantity = document.querySelector("#quantity");
+
+  // Condition de sélection de couleur
+  if (colors.value == "") {
+    alert("Veuillez sélectionner une couleur d'article.");
+    return;
+  }
+
+  // Condition de sélection de quantité
+  if (quantity.value < 1 || quantity.value > 100) {
+    alert(
+      "Veuillez sélectionner une quantité d'articles comprise entre 1 et 100."
+    );
+    return;
+  }
+
+  // Tableau à envoyer au panier
+  let productPanier = [];
+
+  // Condition en cas de panier rempli
+  if (panierStorage) {
+    productPanier = JSON.parse(panierStorage);
+    let existProduct = false;
+
+    // Récupération des différents éléments du panier
+    for (let retrievePanier of productPanier) {
+      (retrieveId = retrievePanier.productId),
+        (retrieveQuantity = parseInt(retrievePanier.productQuantity)),
+        (retrieveColors = retrievePanier.productColors);
+
+      // Condition en cas d'ID et de couleur identiques au panier
+      if (retrieveId == getId() && retrieveColors == colors.value) {
+        const index = productPanier.indexOf(retrievePanier);
+        productPanier[index].productQuantity += parseInt(quantity.value);
+        existProduct = true;
+      }
+    }
+  }
+
+  // Envoi au panier
+  panierStorage = JSON.stringify("productPanier");
+  localStorage.setItem("panier", panierStorage);
+  validPanier();
+}
+
+// Ajout d'événement au clic du bouton
+document.querySelector("#addToCart").addEventListener("click", function () {
+  bouton();
+});
