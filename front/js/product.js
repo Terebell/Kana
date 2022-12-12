@@ -1,4 +1,4 @@
-// ID de l'élément à ajouter à l'URL de la page produit
+// ID de l'élément à ajouter ) l'URL de la page produit
 function getId() {
   let productUrl = location.href;
   let url = new URL(productUrl);
@@ -8,9 +8,9 @@ function getId() {
 
 // Récupération des données (API)
 fetch(`http://localhost:3000/api/products/${getId()}`)
-  .then(function (result) {
-    if (result.ok) {
-      return result.json();
+  .then(function (res) {
+    if (res.ok) {
+      return res.json();
     }
   })
   .then(function (card) {
@@ -19,12 +19,12 @@ fetch(`http://localhost:3000/api/products/${getId()}`)
   })
   // Affichage d'erreur dans la console
   .catch(function (error) {
-    console.log("Erreur !");
+    console.log(`Erreur ! ${error}`);
   });
 
 // Éléments à travailler sur la page produit
 let headTitle = document.querySelector("title");
-let ItemImg = document.querySelector(".item__img");
+let itemImg = document.querySelector(".item__img");
 let title = document.querySelector("#title");
 let price = document.querySelector("#price");
 let description = document.querySelector("#description");
@@ -35,12 +35,12 @@ let quantity = document.querySelector("#quantity");
 const productImg = document.createElement("img");
 
 // Intégration de l'élément précédemment créé (DOM)
-ItemImg.appendChild(productImg);
+itemImg.appendChild(productImg);
 
 function displayProduct(card) {
   // Intégration du tableau (DOM)
   productImg.src = card.imageUrl;
-  productImg.alt = card.altText;
+  productImg.alt = card.altTxt;
   title.innerHTML = card.name;
   description.innerHTML = card.description;
   price.innerHTML = card.price;
@@ -55,6 +55,7 @@ function displayProduct(card) {
 }
 
 // ---------- Envoi au panier ---------- //
+
 function validPanier() {
   if (
     confirm(
@@ -73,7 +74,7 @@ function bouton() {
 
   // Condition de sélection de couleur
   if (colors.value == "") {
-    alert("Veuillez sélectionner une couleur d'article.");
+    alert("Veuillez séléctionner une couleur d'article.");
     return;
   }
 
@@ -106,15 +107,32 @@ function bouton() {
         existProduct = true;
       }
     }
+
+    // Condition en cas de panier plein sans éléments similaires
+    if (!existProduct) {
+      productPanier.push({
+        productId: getId(),
+        productQuantity: parseInt(quantity.value),
+        productColors: colors.value,
+      });
+    }
+
+    // Condition en cas de panier vide
+  } else {
+    productPanier.push({
+      productId: getId(),
+      productQuantity: parseInt(quantity.value),
+      productColors: colors.value,
+    });
   }
 
   // Envoi au panier
-  panierStorage = JSON.stringify("productPanier");
+  panierStorage = JSON.stringify(productPanier);
   localStorage.setItem("panier", panierStorage);
   validPanier();
 }
 
-// Ajout d'événement au clic du bouton
+// Ajout d'événement au clic du bouton de validation
 document.querySelector("#addToCart").addEventListener("click", function () {
   bouton();
 });

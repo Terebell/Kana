@@ -15,7 +15,7 @@ fetch("http://localhost:3000/api/products")
   })
   // Affichage d'erreur dans la console
   .catch(function (error) {
-    console.log("Erreur !");
+    console.log(`Erreur ! ${error}`);
   });
 
 // Création des cartes des différents canapés
