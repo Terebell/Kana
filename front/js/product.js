@@ -95,14 +95,14 @@ function bouton() {
     let existProduct = false;
 
     // Récupération des différents éléments du panier
-    for (let retrievePanier of productPanier) {
-      (retrieveId = retrievePanier.productId),
-        (retrieveQuantity = parseInt(retrievePanier.productQuantity)),
-        (retrieveColors = retrievePanier.productColors);
+    for (let productStorage of productPanier) {
+      (retrieveId = productStorage.productId),
+        (retrieveQuantity = parseInt(productStorage.productQuantity)),
+        (retrieveColors = productStorage.productColors);
 
       // Condition en cas d'ID et de couleur identiques au panier
       if (retrieveId == getId() && retrieveColors == colors.value) {
-        const index = productPanier.indexOf(retrievePanier);
+        const index = productPanier.indexOf(productStorage);
         productPanier[index].productQuantity += parseInt(quantity.value);
         existProduct = true;
       }

@@ -1,6 +1,12 @@
 // Récupération du panier
 let panierStorage = localStorage.getItem("panier");
 
+// Condition en cas de panier vide
+if (!panierStorage) {
+  alert("Votre panier est vide ! Veuillez sélectionner un article.");
+  location.href = "index.html";
+}
+
 // Récupération des éléments du panier
 let productPanier = JSON.parse(panierStorage);
 for (let productStorage of productPanier) {
@@ -216,7 +222,7 @@ city.addEventListener("change", function () {
   validCity(this);
 });
 email.addEventListener("change", function () {
-  validEmail(thi);
+  validEmail(this);
 });
 
 // PRÉNOM : Vérification des caractères avec RegExp (correspondance du texte)
@@ -319,10 +325,69 @@ let validEmail = function (emailFunction) {
     return true;
   } else {
     emailErrorMsg.innerHTML =
-      "Adresse email invalide, le seul format valide est : exemple@kanap.com";
+      "Adresse email invalide, le seul format valide est : mail.exemple@kanap.com";
     emailErrorMsg.style.color = "#B60707";
     emailErrorMsg.classList.remove("text-sucess");
     emailErrorMsg.classList.add("text-danger");
     return false;
   }
 };
+
+// Création d'événement "click"
+let order = document.querySelector("#order");
+order.addEventListener("click", function send(e) {
+  // Récupération des éléments du formulaire (création de l'objet contact)
+  let contact = {
+    firstName: document.querySelector("#firstName").value,
+    lastName: document.querySelector("#lastName").value,
+    address: document.querySelector("#address").value,
+    city: document.querySelector("#city").value,
+    email: document.querySelector("#email").value,
+  };
+
+  if (
+    validFirstName(firstName) &&
+    validLastName(lastName) &&
+    validAddress(address) &&
+    validCity(city) &&
+    validEmail(email)
+  ) {
+    // Récupération des "products ID"
+    let productPanier = JSON.parse(panierStorage);
+    let products = [];
+    productPanier.forEach(function (order) {
+      products.push(order.productId);
+    });
+
+    // Récupération des éléments à envoyer
+    let pageOrder = { contact, products };
+
+    // Envoi à l'API
+    e.preventDefault();
+
+    fetch("http://localhost:3000/api/products/order", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(pageOrder),
+    })
+      .then(function (res) {
+        if (res.ok) {
+          return res.json();
+        }
+      })
+      .then(function (value) {
+        location.href = `./confirmation.html?orderId=${value.orderId}`;
+        localStorage.removeItem("panier");
+      })
+
+      // Retour d'erreur dans la console
+      .catch(function (error) {
+        console.log("Erreur !", error);
+      });
+  } else {
+    alert("Veuillez compléter le formulaire.");
+  }
+});
