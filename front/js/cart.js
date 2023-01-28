@@ -7,30 +7,54 @@ if (!panierStorage) {
   location.href = "index.html";
 }
 
-// Récupération des éléments du panier
-let productPanier = JSON.parse(panierStorage);
-for (let productStorage of productPanier) {
-  let retrieveId = productStorage.productId;
-  // let productStorage = retrievePanier;
+// Requête vers l'API pour récupérer les images associé aux produits :
+fetch("http://localhost:3000/api/products/")
+  .then(function (result) {
+    return result.json();
+  })
+  .then(function (value) {
+    let saveProducts = JSON.parse(panierStorage); // Contenu du panier
+    let productInfo = []; // Contiendra l'url des images des produits stockés dans le localStorage.
 
-  // Récupération des données (API)
-  fetch(`http://localhost:3000/api/products/${retrieveId}`)
-    .then(function (result) {
-      if (result.ok) {
-        return result.json();
-      }
-    })
-    .then(function (card) {
-      displayProduct(card, productStorage);
-      total(card.price);
-    })
-    // Affichage d'erreur dans la console
-    .catch(function (error) {
-      console.log(`Erreur ! ${error}`);
-    });
+    // Parcour le nombre de produit dans le panier
+    for (let i = 0; i < saveProducts.length; i++) {
+      productInfo[i] = getProductInfo(saveProducts[i].productId, value);
+      displayProduct(saveProducts[i], productInfo[i]);
+    }
+
+    total(saveProducts, value);
+  });
+
+// 1: id du produit localStoage
+// 2: Value de l'API,
+function getProductInfo(id, value) {
+  let infos = {
+    imageUrl: "",
+    name: "",
+    price: "",
+  };
+
+  for (let i = 0; i < value.length; i++) {
+    if (value[i]._id == id) {
+      infos.imageUrl = value[i].imageUrl;
+      infos.name = value[i].name;
+      infos.price = value[i].price;
+    }
+  }
+
+  return infos;
 }
 
-function displayProduct(card, productStorage) {
+// Retourne uniquement le prix selon l'ID
+function getPrice(id, value) {
+  for (let i = 0; i < value.length; i++) {
+    if (value[i]._id == id) {
+      return value[i].price;
+    }
+  }
+}
+
+function displayProduct(productStorage, infoProduct) {
   let retrieveId = productStorage.productId;
   let retrieveQuantity = productStorage.productQuantity;
   let retrieveColors = productStorage.productColors;
@@ -89,11 +113,11 @@ function displayProduct(card, productStorage) {
   input.setAttribute("value", retrieveQuantity);
 
   // Intégration des éléments (DOM)
-  img.src = card.imageUrl;
-  img.alt = card.altTxt;
-  title.innerHTML = card.name;
+  img.src = infoProduct.imageUrl;
+  img.alt = productStorage.altTxt;
+  title.innerHTML = infoProduct.name;
   colors.innerHTML = retrieveColors;
-  price.innerHTML = `${card.price} €`;
+  price.innerHTML = `${infoProduct.price} €`;
   quantity.innerHTML = `Quantité de ${retrieveColors} :`;
   deleteItem.innerHTML = "Supprimer";
 
@@ -166,32 +190,28 @@ function deleteCart(productStorage) {
 }
 
 // ----- TOTAL DU PANIER ----- //
-function total(cardPrice) {
-  // Calcul des quantités
-  let itemQuantity = document.querySelectorAll(".itemQuantity");
-  let selectQuantity = itemQuantity.length;
-  let totalQtt = 0;
+function total(saveProducts, value) {
+  var tmp_quantity = [],
+    tmp_price = [];
+  var panier = {
+    totalPrice: 0,
+    totalQuantity: 0,
+  };
 
-  for (let qtt = 0; qtt < selectQuantity; qtt++) {
-    totalQtt += itemQuantity[qtt].valueAsNumber;
+  // Parcours sur le nombre d'item du panier
+  for (let i = 0; i < saveProducts.length; i++) {
+    tmp_price[i] =
+      getPrice(saveProducts[i].productId, value) *
+      saveProducts[i].productQuantity;
+    panier.totalQuantity += saveProducts[i].productQuantity;
+  }
+  for (let i = 0; i < tmp_price.length; i++) {
+    panier.totalPrice += tmp_price[i];
   }
 
-  let totalQuantity = document.querySelector("#totalQuantity");
-  totalQuantity.innerHTML = totalQtt;
-
-  //Calcul du prix total
-  let valuePrice = document.querySelectorAll(
-    ".cart__item__content__description"
-  );
-  let selectPrice = valuePrice.length;
-  price = 0;
-
-  for (let p = 0; p < selectPrice; ++p) {
-    price += itemQuantity[p].valueAsNumber * cardPrice;
-  }
-
-  let totalPrice = document.querySelector("#totalPrice");
-  totalPrice.innerHTML = price;
+  // Affiche le total du panier
+  document.getElementById("totalQuantity").innerHTML = panier.totalQuantity;
+  document.getElementById("totalPrice").innerHTML = panier.totalPrice;
 }
 
 // ========== FORMULAIRE ========== //
